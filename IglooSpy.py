@@ -462,7 +462,7 @@ if __name__ == "__main__":
 			  help="FE crate or RBX (default is -1)",
 			  type="str"
 			  )
-	parser.add_option("-s", "--slot", "-rm", dest="slot",
+	parser.add_option("-s", "--slot", "--rm", dest="slot",
 			  default=-1,
 			  help="FE slot or RM (default is -1)",
 			  type="int"
@@ -472,6 +472,11 @@ if __name__ == "__main__":
 			  help="Card number within HE RM (default is 1).  This is only used for HE subdetector",
 			  type="int"
 			  )
+	parser.add_option("--bx", dest="BX_forSpy",
+			  default=0,
+			  help="Select BX to start the spy at",
+			  type="int"
+			  )
 	parser.add_option("-p", "--port", dest="port",
 			  type="int",
 			  default=-1,
@@ -479,7 +484,7 @@ if __name__ == "__main__":
 			  )
 	parser.add_option("-H", "--host", dest="host",
 			  type="str",
-			  default="hcalvme04",
+			  default="hcalvme01",
 			  help="ngccm server host"
 			  )
 	parser.add_option("-k","--keep","--keepbuffer","--keepBuffer", dest="clearBuffer",
@@ -527,6 +532,11 @@ if __name__ == "__main__":
 	slot = options.slot
 	card = options.card
 
+        BX_forSpy = options.BX_forSpy
+        if BX_forSpy < 0:
+                BX_forSpy = BX_forSpy + 3564
+
+
         #check that only one igloo is specified
 	if options.top and options.bot:
 		print 'Please specify only one igloo, top or bottom, not both'
@@ -573,10 +583,12 @@ if __name__ == "__main__":
         #turns on the spy at fixed BX flag in the igloo (starts spy at 50 BX before BC0)
 	if not options.randomBX:
 		if subdetector=="HF":
-			cmds = ["put {0}-{1}-i[Top,Bot]_SpyAtFixedBX 2*1".format(crate, slot)]
+			cmds = ["put {0}-{1}-i[Top,Bot]_SpyAtFixedBX 2*1".format(crate, slot),
+                                "put {0}-{1}--i[Top,Bot]_BX_forSpy {3}".format(crate, slot, card, BX_forSpy)] 
 			output = sendngFECcommands(cmds=cmds, port=port, host=host)
 		elif subdetector=="HE":
-			cmds = ["put {0}-{1}-{2}-i_SpyAtFixedBX 1".format(crate, slot, card)]
+			cmds = ["put {0}-{1}-{2}-i_SpyAtFixedBX 1".format(crate, slot, card),
+                                "put {0}-{1}-{2}-i_BX_forSpy {3}".format(crate, slot, card, BX_forSpy)]
 			output = sendngFECcommands(cmds=cmds, port=port, host=host)
 
 
