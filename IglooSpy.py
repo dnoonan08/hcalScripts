@@ -584,7 +584,7 @@ if __name__ == "__main__":
 	if not options.randomBX:
 		if subdetector=="HF":
 			cmds = ["put {0}-{1}-i[Top,Bot]_SpyAtFixedBX 2*1".format(crate, slot),
-                                "put {0}-{1}--i[Top,Bot]_BX_forSpy {3}".format(crate, slot, card, BX_forSpy)] 
+                                "put {0}-{1}-i[Top,Bot]_BX_forSpy 2*{3}".format(crate, slot, card, BX_forSpy)] 
 			output = sendngFECcommands(cmds=cmds, port=port, host=host)
 		elif subdetector=="HE":
 			cmds = ["put {0}-{1}-{2}-i_SpyAtFixedBX 1".format(crate, slot, card),
