@@ -191,11 +191,11 @@ def clear_buffer(crate, slot, card, port, host, subdetector="HF",verbose=True):
 			"put {0}-{1}-i[Top,Bot]_CntrReg_InputSpyRst 2*0".format(crate,slot),
 			]
 	elif subdetector=="HE":
-		cmds = ["put {0}-{1}-{2}-i_CntrReg_InputSpyRst 2*0".format(crate,slot,card),
+		cmds = ["put {0}-{1}-{2}-i_CntrReg_InputSpyRst 0".format(crate,slot,card),
 			"wait",
-			"put {0}-{1}-{2}-i_CntrReg_InputSpyRst 2*1".format(crate,slot,card),
+			"put {0}-{1}-{2}-i_CntrReg_InputSpyRst 1".format(crate,slot,card),
 			"wait",
-			"put {0}-{1}-{2}-i_CntrReg_InputSpyRst 2*0".format(crate,slot,card),
+			"put {0}-{1}-{2}-i_CntrReg_InputSpyRst 0".format(crate,slot,card),
 			]
 
 #	print cmds
