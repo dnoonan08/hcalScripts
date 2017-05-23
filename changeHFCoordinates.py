@@ -1,6 +1,6 @@
 import sqlite3
 import sys
-DB_name = "/Users/dnoonan/Work/CMS/HCAL_HF/Mapping/ngHF2017LMap_20170206_pre05.db"
+DB_name = "ngHF2017LMap_20170206_pre05.db"
 
 hf_lmap_db = sqlite3.connect(DB_name)
 hf_lmap_db.text_factory = str
