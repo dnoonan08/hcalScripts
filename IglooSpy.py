@@ -484,7 +484,7 @@ if __name__ == "__main__":
 			  )
 	parser.add_option("-H", "--host", dest="host",
 			  type="str",
-			  default="hcalvme01",
+			  default="",
 			  help="ngccm server host"
 			  )
 	parser.add_option("-k","--keep","--keepbuffer","--keepBuffer", dest="clearBuffer",
@@ -555,16 +555,19 @@ if __name__ == "__main__":
 		print 'Exiting'
 		sys.exit()
 
-        #default igloo is top
 	subdetector = "HF"
 	if options.he:
 		subdetector = "HE"
 		
 	if port==-1:
 		if subdetector=="HF": port=63000
-		if subdetector=="HE": port=64500
+		if subdetector=="HE": port=64000
 
+        if host=="":
+		if subdetector=="HF": host="hcalngccm01"
+		if subdetector=="HE": host="hcalngccm02"
 
+        
 	print 'Spying data from {0} subdetector'.format(subdetector)
 	if subdetector == "HF":
 		print '  Crate {0}'.format(crate)
