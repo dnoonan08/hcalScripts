@@ -111,15 +111,8 @@ def send_commands(cmds=cmds_default, script=False, raw=False, progbar=False, por
 #		sleep(1)		# I need to make sure the ngccm process is killed.
 		p.close()
 #		print "closed"
-		killall()
 		if raw:
 			return raw_output
 		else:
 			return output
 
-def killall():
-	process = subprocess.call(['/nfshome0/dnoonan/killccm.sh'])
-#	p = pexpect.spawn('killall ngccm')		# Run script.
-#	p.expect(pexpect.EOF)		# Wait for the script to finish.
-#	raw_output = p.before.strip()		# Collect all of the script's output.
-	return 0
