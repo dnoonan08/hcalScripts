@@ -164,6 +164,18 @@ def readIglooSpy_per_card(port,host, crate, slot, topbottom, card, subdetector="
 			if verbose: print "Reading {0} samples".format(nsamples)
 			cmd2 = ["get {0}-{1}-{2}-i_inputSpy".format(crate, slot, card),
 				"wait 200"]*nsamples
+		elif subdetector=="HB":
+			cmd1 = ["put {0}-{1}-{2}-i{3}_CntrReg_WrEn_InputSpy 1".format(crate, slot, card, TB[topbottom]),
+				"wait 100",
+				"put {0}-{1}-{2}-i{3}_CntrReg_WrEn_InputSpy 0".format(crate, slot, card, TB[topbottom]),
+				"get {0}-{1}-{2}-i{3}_StatusReg_InputSpyWordNum".format(crate, slot, card, TB[topbottom])]
+
+			output = sendngFECcommands(cmds=cmd1,port=port,host=host)
+			nsamples = int(output[-1]["result"],16) if not Nsamples else min(int(output[-1]["result"],16),Nsamples)
+
+			if verbose: print "Reading {0} samples".format(nsamples)
+			cmd2 = ["get {0}-{1}-{2}-i{3}_inputSpy".format(crate, slot, card, TB[topbottom]),
+				"wait 200"]*nsamples
 
 		
 		output_all = sendngFECcommands(cmds=cmd2, port=port, host=host, script = False, progbar=verbose)
@@ -197,8 +209,15 @@ def clear_buffer(crate, slot, card, port, host, subdetector="HF",verbose=True):
 			"wait",
 			"put {0}-{1}-{2}-i_CntrReg_InputSpyRst 0".format(crate,slot,card),
 			]
+	elif subdetector=="HB":
+		cmds = ["put {0}-{1}-{2}-i[Top,Bot]_CntrReg_InputSpyRst 2*0".format(crate,slot,card),
+			"wait",
+			"put {0}-{1}-{2}-i[Top,Bot]_CntrReg_InputSpyRst 2*1".format(crate,slot,card),
+			"wait",
+			"put {0}-{1}-{2}-i[Top,Bot]_CntrReg_InputSpyRst 2*0".format(crate,slot,card),
+			]
 
-#	print cmds
+	print cmds
 	output = sendngFECcommands(cmds=cmds, port=port, host=host)
 
 
@@ -298,7 +317,10 @@ def  getInfoFromSpy_per_card(port,host,crate, slot, isTop, card, subdetector="HF
 	if isTop or subdetector=="HE":
 		startQIE=1
 	else:
-		startQIE=13
+                if subdetector=="HB":
+                        startQIE=9
+                else:
+                        startQIE=13
 
 	if rawData:
 		for spycontst in spyconts.values()[0]:
@@ -311,19 +333,24 @@ def  getInfoFromSpy_per_card(port,host,crate, slot, isTop, card, subdetector="HF
 			print
 	    
 
+        nQIE = 12
+        if subdetector=="HB":
+                nQIE=8
 	if printAsTable:		
 		if verbose:
 			print "word |",
-			for i in range(12):
+			for i in range(nQIE):
 				print "QIE {0}    |".format(str(i+startQIE).rjust(2," ")),
 			print
 			print "     |",
-			for i in range(12):
+			for i in range(nQIE):
 				print "C ADC TDC |",
 			print
-		for spycontst in spyconts.values()[0]:
+		for spycontst in spyconts.values()[0]:                        
 			outdire={}
 			spycont=spycontst.split()
+                        if subdetector=="HB":
+                                spycont = spycont[:-2]
 			nqie=0
 			if verbose: print ' #{0} |'.format(str(int(spycont[0],16)).rjust(2," ")),
 
@@ -361,6 +388,8 @@ def  getInfoFromSpy_per_card(port,host,crate, slot, isTop, card, subdetector="HF
 			leftn=sendngFECcommands(cmds=["get {0}-{1}-i{2}_StatusReg_InputSpyWordNum".format(crate, slot, TB[topbottom])],port=port,host=host)[0]
 		elif subdetector=="HE":
 			leftn=sendngFECcommands(cmds=["get {0}-{1}-{2}-i_StatusReg_InputSpyWordNum".format(crate, slot, card)],port=port,host=host)[0]
+		elif subdetector=="HB":
+			leftn=sendngFECcommands(cmds=["get {0}-{1}-{2}-i{3}_StatusReg_InputSpyWordNum".format(crate, slot, card, TB[topbottom])],port=port,host=host)[0]
 		print '\n',leftn['cmd'],'#',leftn['result']
 
 	if not clearBuffer:
@@ -508,6 +537,10 @@ if __name__ == "__main__":
 			  default=False, action="store_true",
 			  help="Run on HE subdetector (default is HF)",
 			  )
+	parser.add_option("--HB","--hb", dest="hb",
+			  default=False, action="store_true",
+			  help="Run on HB subdetector (default is HF)",
+			  )
 	parser.add_option("-r","--random","--randomBX", dest="randomBX",
 			  default=False, action="store_true",
 			  help="start spy buffer at a random value, rather than just prior to BC0"
@@ -558,14 +591,18 @@ if __name__ == "__main__":
 	subdetector = "HF"
 	if options.he:
 		subdetector = "HE"
+	if options.hb:
+		subdetector = "HB"
 		
 	if port==-1:
 		if subdetector=="HF": port=63000
 		if subdetector=="HE": port=64000
+		if subdetector=="HB": port=64000
 
         if host=="":
 		if subdetector=="HF": host="hcalngccm01"
 		if subdetector=="HE": host="hcalngccm02"
+		if subdetector=="HB": host="cmshcal4"
 
         
 	print 'Spying data from {0} subdetector'.format(subdetector)
@@ -593,6 +630,10 @@ if __name__ == "__main__":
 			cmds = ["put {0}-{1}-{2}-i_SpyAtFixedBX 1".format(crate, slot, card),
                                 "put {0}-{1}-{2}-i_BX_forSpy {3}".format(crate, slot, card, BX_forSpy)]
 			output = sendngFECcommands(cmds=cmds, port=port, host=host)
+		elif subdetector=="HB":
+			cmds = ["put {0}-{1}-{2}-i[Top,Bot]_SpyAtFixedBX 2*1".format(crate, slot, card),
+                                "put {0}-{1}-{2}-i[Top,Bot]_BX_forSpy 2*{3}".format(crate, slot, card, BX_forSpy)] 
+			output = sendngFECcommands(cmds=cmds, port=port, host=host)
 
 
 
@@ -607,6 +648,9 @@ if __name__ == "__main__":
 			output = sendngFECcommands(cmds=cmds, port=port, host=host)
 		elif subdetector=="HE":
 			cmds = ["put {0}-{1}-{2}-i_SpyAtFixedBX 0".format(crate, slot, card)]
+			output = sendngFECcommands(cmds=cmds, port=port, host=host)
+		elif subdetector=="HB":
+			cmds = ["put {0}-{1}-{2}-i[Top,Bot]_SpyAtFixedBX 2*0".format(crate, slot, card)]
 			output = sendngFECcommands(cmds=cmds, port=port, host=host)
 
 
